@@ -1,0 +1,36 @@
+.selected {
+  background: #fcfc00;
+}
+.word {
+  padding: 0 2px;
+  display: inline-block;
+  height: 45px;
+}
+
+#content {
+  font-size: 20px;
+  margin: 15px;
+  padding: 15px;
+  border: 1px solid #ccc
+}
+#answer {
+  margin: 15px;
+  padding: 15px;
+  border: 1px solid #ccc
+}
+.word-bottom {
+  display: inline-block;
+  width: 0px;
+  position: relative;
+  top: 20px;
+  margin: auto;
+  color: red;
+}
+#text {
+  resize: none;
+  width: 95%;
+  margin: auto;
+}
+.noun {
+  text-decoration: underline solid red;
+}
