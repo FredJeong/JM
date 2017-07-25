@@ -1,0 +1,28 @@
+[debug] [2017-07-17T15:34:55.126Z] ----------------------------------------------------------------------
+[debug] [2017-07-17T15:34:55.128Z] Command:      /usr/bin/node /usr/local/bin/firebase serve
+[debug] [2017-07-17T15:34:55.129Z] CLI Version:  3.9.1
+[debug] [2017-07-17T15:34:55.129Z] Platform:     linux
+[debug] [2017-07-17T15:34:55.129Z] Node Version: v4.2.6
+[debug] [2017-07-17T15:34:55.129Z] Time:         Tue Jul 18 2017 00:34:55 GMT+0900 (KST)
+[debug] [2017-07-17T15:34:55.129Z] ----------------------------------------------------------------------
+[debug] 
+[debug] [2017-07-17T15:34:55.137Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform"]
+[debug] [2017-07-17T15:34:55.137Z] > authorizing via signed-in user
+[debug] [2017-07-17T15:34:55.138Z] >>> HTTP REQUEST GET https://admin.firebase.com/v1/projects/syntax-match  
+ Tue Jul 18 2017 00:34:55 GMT+0900 (KST)
+[debug] [2017-07-17T15:34:56.233Z] <<< HTTP RESPONSE 200
+[debug] [2017-07-17T15:34:56.234Z] >>> HTTP REQUEST GET https://admin.firebase.com/v1/database/syntax-match/tokens  
+ Tue Jul 18 2017 00:34:56 GMT+0900 (KST)
+[debug] [2017-07-17T15:34:57.111Z] <<< HTTP RESPONSE 200
+[info] 
+[info] === Serving from '/home/wwee3631/Projects/JM'...
+[info] 
+[debug] [2017-07-17T15:34:57.113Z] >>> HTTP REQUEST GET https://cloudresourcemanager.googleapis.com/v1/projects/syntax-match  
+ Tue Jul 18 2017 00:34:57 GMT+0900 (KST)
+[debug] [2017-07-17T15:34:58.003Z] <<< HTTP RESPONSE 200
+[debug] [2017-07-17T15:34:58.003Z] >>> HTTP REQUEST GET https://mobilesdk-pa.googleapis.com/v1/projects/793588063556/clients/_:getWebAppConfig  
+ Tue Jul 18 2017 00:34:58 GMT+0900 (KST)
+[debug] [2017-07-17T15:34:59.207Z] <<< HTTP RESPONSE 200
+[info] i  hosting: Serving hosting files from: public
+[info] ✔  hosting: Local server: http://localhost:5000
+

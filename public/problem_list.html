@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Welcome to Firebase Hosting</title>
+
+    <!-- update the version number as needed -->
+    <script defer src="/__/firebase/4.1.3/firebase-app.js"></script>
+    <!-- include only the Firebase features as you need -->
+    <script defer src="/__/firebase/4.1.3/firebase-auth.js"></script>
+    <script defer src="/__/firebase/4.1.3/firebase-database.js"></script>
+    <script defer src="/__/firebase/4.1.3/firebase-messaging.js"></script>
+    <script defer src="/__/firebase/4.1.3/firebase-storage.js"></script>
+    <!-- initialize the SDK after all desired features are loaded -->
+    <script defer src="/__/firebase/init.js"></script>
+
+    <style media="screen">
+      body { background: #ECEFF1; color: rgba(0,0,0,0.87); font-family: Roboto, Helvetica, Arial, sans-serif; margin: 0; padding: 0; }
+    </style>
+
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <!-- Compiled and minified CSS -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.99.0/css/materialize.min.css">
+    <link rel="stylesheet" type="text/css" href="editor.css">
+
+  </head>
+  <body>
+  <div class="container">
+    <div class="row">
+      <div class="col s1">
+        <div class="collection" id="groups"></div>
+      </div>
+      <div class="col s3">
+        <div  class="collection" id="prob-list"></div>
+      </div>
+      <div class="col s8" id="problem">
+        <div id="content" tabindex="1"></div>
+        <a class="waves-effect waves-light btn right" onclick="uploadAnswer()">Submit</a>
+      </div>
+    </div>
+    <div class="row">
+      <p id="info">Firebase SDK Loading&hellip;</p>
+    </div>
+  </div>
+  <!-- Compiled and minified JavaScript -->
+  <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.99.0/js/materialize.min.js"></script>
+  <script type="text/javascript" src="editor.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+// // 🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥
+// // The Firebase SDK is initialized and available here!
+//
+// firebase.auth().onAuthStateChanged(user => { });
+// firebase.database().ref('/path/to/ref').on('value', snapshot => { });
+// firebase.messaging().requestPermission().then(() => { });
+// firebase.storage().ref('/path/to/ref').getDownloadURL().then(() => { });
+//
+// // 🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥
+
+
+try {
+  var app = firebase.app();
+  var features = ['auth', 'database', 'messaging', 'storage'].filter(function (feature) {return typeof app[feature] === 'function'});
+  document.getElementById('info').innerHTML = `Firebase SDK loaded with ${features.join(', ')}`;
+} catch (e) {
+  console.error(e);
+  document.getElementById('info').innerHTML = 'Error loading the Firebase SDK, check the console.';
+}
+
+var groups;
+
+firebase.database().ref('group').once('value', function(snapshot) {
+  groups = snapshot.val();
+  firebase.auth().onAuthStateChanged(function(user) {
+    if (user) {
+      $('#info').text('Logged in as ' + user.email);
+      currentUser = user;
+      $('#groups').html('');
+      firebase.database().ref('user/' + user.uid).once('value', function(snapshot) {
+        var user = snapshot.val();
+        if (user.group) {
+          for (var i in user.group) {
+            $('#groups').append('<a href="#" class="collection-item" onclick="loadGroup(\'' + user.group[i] + '\')">' + groups[user.group[i]].name + '</a>');  
+          }
+          loadGroup(user.group[0]);
+        }
+      });
+    } else {
+      currentUser = undefined;
+      $('#info').text('No auth');
+    }
+  });
+});
+
+firebase.database().ref('/problems').limitToLast(10).once('value', function (snapshot) {
+  var prob_list = snapshot.val();
+  console.dir(prob_list);
+  for (var key in prob_list) {
+    console.log(key);
+  }
+});
+});
+
+var currentUser;
+var currentProblem;
+
+function loadProblem(key) {
+  firebase.database().ref('/problems/' + key).once('value', function (snapshot) {
+    currentProblem = snapshot;
+    /*
+    */
+    firebase.database().ref('user/' + currentUser.uid + '/solved/' + currentProblem.key).once('value', function (problem) {
+      if (!problem.val()) {
+        init(currentProblem.val().words);
+      } else {
+        init(JSON.stringify({
+          words: currentProblem.val().words.split(' '),
+          answers: problem.val().answers
+        }), true);  
+      }
+    });
+    
+  });
+}
+
+function loadGroup(key) {
+  firebase.database().ref('/group/' + key + '/problem').orderByChild('start').once('value', function (snapshot) {
+    $('#prob-list').html('');
+    snapshot.forEach(function(problem) {
+      $('#prob-list').append('<a href="#" class="collection-item" onclick="loadProblem(\'' + problem.key + '\')">' + problem.val().title + '</a>');
+    });
+
+  });
+}
+
+function uploadAnswer() {
+  if (!currentProblem || !currentUser) {
+    return;
+  }
+  var answers = [];
+
+  for (var i = 0; i < wordCount; i++) {
+    var real_id = '#word-' + i;
+    var left = $(real_id + ' .word-left').text();
+    var right = $(real_id + ' .word-right').text();
+    var bottom = $(real_id + ' .word-bottom').text();
+    if ($(real_id + ' .word-text').hasClass('noun')) bottom = 'n' + bottom;
+
+    answers.push([left, right, bottom]);
+  }
+  var correct = true;
+  var refAnswer = currentProblem.val().answers;
+  for (var i = 0; i < answers.length; i++) {
+    for(var j = 0; j < 3; j++) {
+      if (answers[i][j] !== refAnswer[i][j]) {
+        correct = false;
+        console.log(i, j, '/', answers[i][j], '/', refAnswer[i][j], '/');
+      }
+    }
+  }
+  firebase.database().ref('user/' + currentUser.uid + '/solved/' + currentProblem.key).set({
+    timestamp: firebase.database.ServerValue.TIMESTAMP,
+    answers: answers,
+    correct: correct
+  });
+  if(correct) {
+    Info("Correct");
+  } else {
+    Error("Incorrect. Try Again.");
+  }
+}
+</script>
+  </body>
+</html>

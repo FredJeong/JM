@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Welcome to Firebase Hosting</title>
+
+    <!-- update the version number as needed -->
+    <script defer src="/__/firebase/4.1.3/firebase-app.js"></script>
+    <!-- include only the Firebase features as you need -->
+    <script defer src="/__/firebase/4.1.3/firebase-auth.js"></script>
+    <script defer src="/__/firebase/4.1.3/firebase-database.js"></script>
+    <script defer src="/__/firebase/4.1.3/firebase-messaging.js"></script>
+    <script defer src="/__/firebase/4.1.3/firebase-storage.js"></script>
+    <!-- initialize the SDK after all desired features are loaded -->
+    <script defer src="/__/firebase/init.js"></script>
+
+    <style media="screen">
+      body { background: #ECEFF1; color: rgba(0,0,0,0.87); font-family: Roboto, Helvetica, Arial, sans-serif; margin: 0; padding: 0; }
+    </style>
+
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <!-- Compiled and minified CSS -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.99.0/css/materialize.min.css">
+
+  </head>
+  <body>
+  <div class="container">
+    <div class="row" id="groups">
+    </div>
+    <div class="row">
+      <form>
+        <div class="input-field col s6">
+          <input placeholder="Group Name" id="group-name" type="text" class="validate">
+          <label for="group-name">New Group</label>
+        </div>
+        <div class="col s6">
+          <button class="btn waves-effect waves-light" id="create-group" type="button" name="create-group">Add Group
+            <i class="material-icons right">send</i>
+          </button>
+        </div>
+      </form>
+    </div>
+    <div class="row">
+      <p id="info">Firebase SDK Loading&hellip;</p>
+    </div>
+  </div>
+    <!-- Compiled and minified JavaScript -->
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.99.0/js/materialize.min.js"></script>
+<script>
+
+function Error(str) {
+  $('#info').html('<span style="color:#dd2222;">' + str + '</span>')
+}
+function Info(str) {
+  $('#info').html('<span style="color:#22dd22;">' + str + '</span>')
+}
+document.addEventListener('DOMContentLoaded', function() {
+// // 🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥
+// // The Firebase SDK is initialized and available here!
+//
+// firebase.auth().onAuthStateChanged(user => { });
+// firebase.database().ref('/path/to/ref').on('value', snapshot => { });
+// firebase.messaging().requestPermission().then(() => { });
+// firebase.storage().ref('/path/to/ref').getDownloadURL().then(() => { });
+//
+// // 🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥
+
+
+try {
+  var app = firebase.app();
+  var features = ['auth', 'database', 'messaging', 'storage'].filter(function(feature) {return typeof app[feature] === 'function'});
+  document.getElementById('info').innerHTML = `Firebase SDK loaded with ${features.join(', ')}`;
+} catch (e) {
+  console.error(e);
+  document.getElementById('info').innerHTML = 'Error loading the Firebase SDK, check the console.';
+}
+
+var groups;
+
+firebase.database().ref('group').on('value', function(snapshot) {
+  groups = snapshot.val();
+  $('#groups').html('');
+  var g_list = [];
+  for (var k in groups) {
+    g_list.push([groups[k].name, k]);
+  }
+  g_list.sort(function(a,b) { return a[0] > b[0];});
+  for (var i in g_list) {
+    $('#groups').append('<div class="chip">' + g_list[i][0] + '<i class="close material-icons">close</i></div>');  
+  }
+  
+});
+
+$('#create-group').click(function() {
+  var group = $('#group-name').val();
+  if (group.length == 0) {
+    Error("Input Group Name")
+    return;
+  }
+  for (var k in groups) {
+    if (group === groups[k].name) {
+      Error("Group Already Exists");
+      return;
+    }
+  }
+  var newGroup = firebase.database().ref('group/').push();
+  newGroup.set({name:group}).then(function(){Info("Success");});
+});
+
+
+});
+</script>
+  </body>
+</html>

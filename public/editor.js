@@ -26,6 +26,10 @@ function newArticleAnswer() {
 }
 function generateAnswer() {
   var answers = [];
+  var title = $('#title').val();
+  var start = $('#start-date').val();
+  var end = $('#end-date').val();
+
   for (var i = 0; i < wordCount; i++) {
     var real_id = '#word-' + i;
     var left = $(real_id + ' .word-left').text();
@@ -39,11 +43,27 @@ function generateAnswer() {
     words: words,
     answers: answers
   }));
-}
+  var answer = {
+    words: words.join(' '),
+    answers: answers,
+    title: title,
+    start: start,
+    end: end
+  }
+  var answerRef = firebase.database().ref('/problems').push();
+  answerRef.set(answer);
 
-$(function () {
-  init(text);
-});
+  var list = [];
+  $("input:checked").each(function(i, e) {
+    var id = $(e).attr('id').substr(5);
+    firebase.database().ref('group/' + id + '/problem/' + answerRef.key).set({
+      title: title,
+      start: start,
+      end: end,
+      content: words.join(' ').substr(0, 50)
+    });
+  });
+}
 
 function init (text, preprocessed) {
   $('#content').html('');
@@ -133,6 +153,7 @@ function init (text, preprocessed) {
       updateBottomAlign(real_id);
       break;
     case 73:
+      break; //disable
       console.log('i');
       if ($(real_id + ' .word-bottom').text() === 'ing')
         $(real_id + ' .word-bottom').text('');

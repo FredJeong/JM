@@ -1,0 +1,66 @@
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <!-- update the version number as needed -->
+    <script defer src="/__/firebase/4.1.3/firebase-app.js"></script>
+    <!-- include only the Firebase features as you need -->
+    <script defer src="/__/firebase/4.1.3/firebase-auth.js"></script>
+    <script defer src="/__/firebase/4.1.3/firebase-database.js"></script>
+    <script defer src="/__/firebase/4.1.3/firebase-messaging.js"></script>
+    <script defer src="/__/firebase/4.1.3/firebase-storage.js"></script>
+    <!-- initialize the SDK after all desired features are loaded -->
+    <script defer src="/__/firebase/init.js"></script>
+
+    <style media="screen">
+    </style>
+    <title>Editor</title>
+    <link rel="stylesheet" type="text/css" href="editor.css">
+  </head>
+  <body>
+    <div>
+    [ ] < > ( ) : Clauses<br>
+    Baskspace : delete leftmost parenthesis/bracket<br>
+    Delete : delete rightmost parenthesis/bracket<br>
+    v : verb<br>
+    n : noun<br>
+    a : adjective<br>
+    d : adverb<br>
+    </div>
+    <textarea id="text" rows="10"></textarea><br>
+    <button onclick="newArticle()">New Article</button>&nbsp;
+    <button onclick="newArticleAnswer()">New Article with Answer</button>
+    <div id="content" tabindex="1"></div>
+    <button onclick="generateAnswer()">Generate Answer</button>
+    <h4>Answer</h4>
+    <div id="answer"></div>
+    <h6 id='load'></h6>
+    
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+// // 🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥
+// // The Firebase SDK is initialized and available here!
+//
+// firebase.auth().onAuthStateChanged(user => { });
+// firebase.database().ref('/path/to/ref').on('value', snapshot => { });
+// firebase.messaging().requestPermission().then(() => { });
+// firebase.storage().ref('/path/to/ref').getDownloadURL().then(() => { });
+//
+// // 🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥
+
+
+try {
+  var app = firebase.app();
+  var features = ['auth', 'database', 'messaging', 'storage'].filter(function(feature) {return typeof app[feature] === 'function'});
+  document.getElementById('load').innerHTML = `Firebase SDK loaded with ${features.join(', ')}`;
+} catch (e) {
+  console.error(e);
+  document.getElementById('load').innerHTML = 'Error loading the Firebase SDK, check the console.';
+}
+});
+</script>
+    <script src="editor.js"></script>
+  </body>
+</html>
