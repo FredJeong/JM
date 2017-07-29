@@ -120,7 +120,6 @@ function init (text, preprocessed) {
       selected_id = id - 1;
       break;
 
-
     case 39: // right
       if (id >=  wordCount - 1) break;
       $('#word-' + id).removeClass('selected');
@@ -164,7 +163,7 @@ function init (text, preprocessed) {
     case 78:
       console.log('n');
       $(real_id + ' .word-text').toggleClass('noun');
-      
+
       break;
     case 219:
       console.log('[');
