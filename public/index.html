@@ -110,6 +110,34 @@ $('#login').click(login);
 $('#logout').click(logout);
 $('.logged-in').hide();
 
+$(function(){
+firebase.auth().onAuthStateChanged(function(user) {
+  if (user) {
+    Info('Logged in as ' + user.email);
+    $('#login-window').hide();
+    firebase.database().ref('user/' + user.uid).once('value', function (snapshot) {
+      $('.logged-in').show();
+      $('.user-name').text(snapshot.val().name);
+      var groups = snapshot.val().group;
+      for(var i in groups) {
+        if (groups[i] === INSTRUCTOR_GROUP) {
+          setTimeout(function() {
+            location.href="/add_problem.html";
+          }, 1000);
+          return;
+        }
+      }
+      setTimeout(function() {
+        location.href="/problem_list.html";
+      }, 1000);
+    })
+  } else {
+    Info('No auth');
+    $('#login-window').show();
+    $('.logged-in').hide();
+  }
+});
+});
 
 });
     </script>

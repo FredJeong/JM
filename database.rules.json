@@ -1,6 +1,29 @@
 {
   "rules": {
-    ".read": "auth != null",
-    ".write": "auth != null"
+    "user": {
+      "$user_id": {
+        "group": {
+          ".read": "auth != null"
+        },
+        "emali": {
+          ".write": "!data.exists()"
+        },
+        "name": {
+          ".write": "!data.exists()"
+        },
+        "solved": {
+          ".write": "$user_id === auth.uid"
+        }
+      }
+    },
+    "group": {
+      "$group_id": {
+        "name": {
+          ".validate": "!data.exists()"
+        }
+      }
+    },
+    ".read": "auth != null",  
+    ".write": "root.child('user').child(auth.uid).child('admin').val() == true"
   }
 }

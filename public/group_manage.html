@@ -25,6 +25,19 @@
 
   </head>
   <body>
+  <nav>
+    <div class="nav-wrapper">
+      <a href="#" class="brand-logo">&nbsp;JM Systems English</a>
+      <ul id="nav-mobile" class="right hide-on-med-and-down">
+        <li><a href="user_list.html">Homeworks</a></li>
+        <li><a href="add_problem.html">New problem</a></li>
+        <li><a href="user_manage.html">Users</a></li>
+        <li><a href="group_manage.html">Groups</a></li>
+        <li class="logged-in">Hello <span class="user-name"></span></li>
+        <li class="logged-in"><a onclick="logout()">Logout</a></li>
+      </ul>
+    </div>
+  </nav>
   <div class="container">
     <div class="row" id="groups">
     </div>
@@ -49,13 +62,6 @@
     <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.99.0/js/materialize.min.js"></script>
 <script>
-
-function Error(str) {
-  $('#info').html('<span style="color:#dd2222;">' + str + '</span>')
-}
-function Info(str) {
-  $('#info').html('<span style="color:#22dd22;">' + str + '</span>')
-}
 document.addEventListener('DOMContentLoaded', function() {
 // // 🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥
 // // The Firebase SDK is initialized and available here!
@@ -67,6 +73,7 @@ document.addEventListener('DOMContentLoaded', function() {
 //
 // // 🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥
 
+admin();
 
 try {
   var app = firebase.app();
@@ -112,5 +119,6 @@ $('#create-group').click(function() {
 
 });
 </script>
+    <script src="common.js"></script>
   </body>
 </html>

@@ -29,16 +29,17 @@
     <nav>
       <div class="nav-wrapper">
         <a href="#" class="brand-logo">&nbsp;JM Systems English</a>
-        <ul id="nav-mobile" class="right hide-on-med-and-down">
-          <li><a href="user_manage.html">Users</a></li>
-          <li><a href="group_manage.html">Groups</a></li>
-          <li class="logged-in">Hello <span class="user-name"></span></li>
-          <li class="logged-in"><a onclick="logout()">Logout</a></li>
+        <ul>
+        <li><kbd>[</kbd> <kbd>]</kbd> <kbd><</kbd> <kbd>></kbd> <kbd>(</kbd> <kbd>)</kbd> : Clauses</li>
+        <li><kbd>Backspace</kbd> delete leftmost parenthesis/bracket</li>
+        <li><kbd>Delete</kbd> delete rightmost parenthesis/bracket</li>
+        <li><kbd>v</kbd> verb <kbd>n</kbd> noun <kbd>a</kbd> adjective <kbd>d</kbd> adverb</li>
         </ul>
       </div>
     </nav>
   <div class="container">
     <div class="row">
+      <h5>Instructions</h5>
       <ul>
         <li>[ ] < > ( ) : Clauses</li>
         <li>Baskspace : delete leftmost parenthesis/bracket</li>
@@ -56,7 +57,7 @@
           </div>
         </div>
         <a class="waves-effect waves-light btn" onclick="newArticle()">New Article</a>
-        <a class="waves-effect waves-light btn" onclick="newArticleAnswer()">New Article with Answer</a>
+        <a class="waves-effect waves-light btn" onclick="newArticleAnswer()">Load Article from Answer</a>
       </form>
       <div class="row">
         <div id="content" class="col s12" tabindex="1"></div>
@@ -77,6 +78,7 @@
           </div>
 
         </form>
+        <h5>Groups</h5>
         <div class="col s12" id="groups"></div>
         <div class="col s12">
           <a class="btn waves-effect waves-light" onclick="generateAnswer()">Add Problem</a>
@@ -91,6 +93,7 @@
     <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.99.0/js/materialize.min.js"></script>
 <script>
+admin();
 document.addEventListener('DOMContentLoaded', function() {
 // // 🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥
 // // The Firebase SDK is initialized and available here!
@@ -158,5 +161,6 @@ firebase.auth().onAuthStateChanged(function(user) {
 
 </script>
   <script type="text/javascript" src="editor.js"></script>
+  <script src="common.js"></script>
   </body>
 </html>

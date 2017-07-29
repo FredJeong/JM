@@ -5,6 +5,12 @@ function Info(str) {
   $('#info').html('<span style="color:#22dd22;">' + str + '</span>')
 }
 
+var previliged = false;
+
+function admin() {
+  previliged = true;
+}
+
 function logout () {
   firebase.auth().signOut().then(function () {
     Info('Signed out');
@@ -16,27 +22,21 @@ $(function(){
 firebase.auth().onAuthStateChanged(function(user) {
   if (user) {
     Info('Logged in as ' + user.email);
-    $('#login-window').hide();
     firebase.database().ref('user/' + user.uid).once('value', function (snapshot) {
       $('.logged-in').show();
       $('.user-name').text(snapshot.val().name);
-      var groups = snapshot.val().group;
-      for(var i in groups) {
-        if (groups[i] === INSTRUCTOR_GROUP) {
-          setTimeout(function() {
-            location.href="/add_problem.html";
-          }, 1000);
-          return;
-        }
+      if (previliged && !snapshot.val().admin) {
+        $("div").html('');
+        $("body").append('<div id="info"></div>');
+        Error("Unauthorized Access");
+        setTimeout(function() {
+          location.href = "/index.html";
+        }, 200);
       }
-      setTimeout(function() {
-        location.href="/problem_list.html";
-      }, 1000);
-    })
+    });
   } else {
     Info('No auth');
-    $('#login-window').show();
-    $('.logged-in').hide();
+    if (location.href.indexOf("/index.html") < 0 && location.href.indexOf("/register.html") < 0) location.href="/index.html";
   }
 });
 });
