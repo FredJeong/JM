@@ -1,19 +1,16 @@
 {
   "rules": {
     "user": {
-      ".write": "root.child('user').child(auth.uid).child('admin').val() == true || !data.exists()",
       "$user_id": {
+        ".write": "$user_id === auth.uid",
         "group": {
           ".read": "auth != null"
         },
         "emali": {
-          ".write": "!data.exists()"
+          ".validate": "!data.exists()"
         },
         "name": {
-          ".write": "!data.exists()"
-        },
-        "solved": {
-          ".write": "$user_id === auth.uid"
+          ".validate": "!data.exists()"
         }
       }
     },

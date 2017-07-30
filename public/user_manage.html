@@ -108,7 +108,7 @@ firebase.database().ref('group').on('value', function(snapshot) {
     group_dict[groups[k].name] = k;
     group_list.push([groups[k].name, k]);
   }
-  group_list.sort(function(a,b) {return a[0]>b[0];});
+  group_list.sort(function(a,b) { return a[0] < b[0]?-1:1;});
   for (var i in group_list) {
     $('#groups').append('<input type="checkbox" class="filled-in" id="group' + group_list[i][1] + '" name="' + group_list[i][0] + '"/>' +
       '<label for="group' + group_list[i][1] + '" style="padding-right:10px;">'+ group_list[i][0] +'</label>');

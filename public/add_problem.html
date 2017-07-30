@@ -17,6 +17,7 @@
 
     <style media="screen">
       body { background: #ECEFF1; color: rgba(0,0,0,0.87); font-family: Roboto, Helvetica, Arial, sans-serif; margin: 0; padding: 0; }
+      kbd {display: inline-block; padding: 3px 5px; font: 11px "SFMono-Regular", Consolas, "Liberation Mono", Menlo, Courier, monospace; line-height: normal; line-height: 14px; color: #444d56; vertical-align: middle; background-color: #fafbfc; border: solid 1px #d1d5da; border-bottom-color: rgb(209, 213, 218); border-bottom-color: #c6cbd1; border-radius: 3px; box-shadow: inset 0 -1px 0 #c6cbd1; }
     </style>
 
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
@@ -29,11 +30,13 @@
     <nav>
       <div class="nav-wrapper">
         <a href="#" class="brand-logo">&nbsp;JM System English</a>
-        <ul>
-        <li><kbd>[</kbd> <kbd>]</kbd> <kbd><</kbd> <kbd>></kbd> <kbd>(</kbd> <kbd>)</kbd> : Clauses</li>
-        <li><kbd>Backspace</kbd> delete leftmost parenthesis/bracket</li>
-        <li><kbd>Delete</kbd> delete rightmost parenthesis/bracket</li>
-        <li><kbd>v</kbd> verb <kbd>n</kbd> noun <kbd>a</kbd> adjective <kbd>d</kbd> adverb</li>
+        <ul id="nav-mobile" class="right hide-on-med-and-down">
+          <li><a href="user_list.html">Homeworks</a></li>
+          <li><a href="add_problem.html">New problem</a></li>
+          <li><a href="user_manage.html">Users</a></li>
+          <li><a href="group_manage.html">Groups</a></li>
+          <li class="logged-in">Hello <span class="user-name"></span></li>
+          <li class="logged-in"><a onclick="logout()">Logout</a></li>
         </ul>
       </div>
     </nav>
@@ -41,13 +44,10 @@
     <div class="row">
       <h5>Instructions</h5>
       <ul>
-        <li>[ ] < > ( ) : Clauses</li>
-        <li>Baskspace : delete leftmost parenthesis/bracket</li>
-        <li>Delete : delete rightmost parenthesis/bracket</li>
-        <li>v : verb</li>
-        <li>n : noun</li>
-        <li>a : adjective</li>
-        <li>d : adverb</li>
+        <li><kbd>[</kbd> <kbd>]</kbd> <kbd><</kbd> <kbd>></kbd> <kbd>(</kbd> <kbd>)</kbd> : Clauses</li>
+        <li><kbd>Backspace</kbd> delete leftmost parenthesis/bracket</li>
+        <li><kbd>Delete</kbd> delete rightmost parenthesis/bracket</li>
+        <li><kbd>v</kbd> verb <kbd>n</kbd> noun <kbd>a</kbd> adjective <kbd>d</kbd> adverb</li>
       </ul>
       <form class="col s12">
         <div class="row">
@@ -93,7 +93,6 @@
     <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.99.0/js/materialize.min.js"></script>
 <script>
-admin();
 document.addEventListener('DOMContentLoaded', function() {
 // // 🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥
 // // The Firebase SDK is initialized and available here!
@@ -104,6 +103,8 @@ document.addEventListener('DOMContentLoaded', function() {
 // firebase.storage().ref('/path/to/ref').getDownloadURL().then(() => { });
 //
 // // 🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥
+
+admin();
 
 $('.datepicker').pickadate({
   selectMonths: true, // Creates a dropdown to control month
@@ -133,7 +134,7 @@ firebase.database().ref('group').once('value', function(snapshot) {
     group_dict[groups[k].name] = k;
     group_list.push([groups[k].name, k]);
   }
-  group_list.sort(function(a,b) {return a[0]>b[0];});
+  group_list.sort(function(a,b) { return a[0] < b[0]?-1:1;});
   for (var i in group_list) {
     $('#groups').append('<input type="checkbox" class="filled-in" id="group' + group_list[i][1] + '" name="' + group_list[i][0] + '"/>' +
       '<label for="group' + group_list[i][1] + '" style="padding-right:10px;">'+ group_list[i][0] +'</label>');

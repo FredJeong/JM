@@ -93,7 +93,7 @@ firebase.database().ref('group').on('value', function(snapshot) {
   for (var k in groups) {
     g_list.push([groups[k].name, k]);
   }
-  g_list.sort(function(a,b) { return a[0] > b[0];});
+  g_list.sort(function(a,b) { return a[0] < b[0]?-1:1;});
   for (var i in g_list) {
     $('#groups').append('<div class="chip">' + g_list[i][0] + '<i class="close material-icons">close</i></div>');
   }

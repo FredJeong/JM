@@ -44,11 +44,11 @@
           </div>
           <div class="input-field col s6">
             <input type="password" class="validate" id="password">
-            <label for="password">PW</label>
+            <label for="password">Password</label>
           </div>
           <div class="input-field col s6">
             <input type="password" class="validate" id="password_confirm">
-            <label for="password_confirm">PW_confirm</label>
+            <label for="password_confirm">Password Confirm</label>
           </div>
           <div class="input-field col s6">
             <input type="text" class="validate" id="name">
@@ -61,7 +61,7 @@
       </form>
     </div>
     <div class="row">
-      <p id="load">Firebase SDK Loading&hellip;</p>
+      <p id="info">Firebase SDK Loading&hellip;</p>
     </div>
   </div>
     <!-- Compiled and minified JavaScript -->
@@ -82,10 +82,10 @@ document.addEventListener('DOMContentLoaded', function() {
 try {
   var app = firebase.app();
   var features = ['auth', 'database', 'messaging', 'storage'].filter(function(feature) {return typeof app[feature] === 'function'});
-  document.getElementById('load').innerHTML = `Firebase SDK loaded with ${features.join(', ')}`;
+  Info(`Firebase SDK loaded with ${features.join(', ')}`);
 } catch (e) {
   console.error(e);
-  document.getElementById('load').innerHTML = 'Error loading the Firebase SDK, check the console.';
+  Error('Error loading the Firebase SDK, check the console.');
 }
 
 $('#register').click(function() {
@@ -96,17 +96,20 @@ $('#register').click(function() {
   var name = $('#name').val();
 
   if (pass !== pass2) {
-    $('#load').text('Password does not match');
+    Error('Password does not match');
     return;
   }
-  $('#load').text('');
+  Info('');
   firebase.auth().createUserWithEmailAndPassword(id, pass).then(function(user) {
     firebase.database().ref('user/' + user.uid).set({
       name: name,
       email: id
+    }).then(function () {
+      Info("Registred!");
+      location.href = "index.html";
     });
   }, function(error) {
-    $('#load').text('Error occured while registering, (' + error.code + ') ' + error.message);
+    Error('Error occured while registering, (' + error.code + ') ' + error.message);
   });
 });
 

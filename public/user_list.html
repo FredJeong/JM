@@ -145,8 +145,10 @@ firebase.database().ref('/user').once('value', function(snapshot) {
 
   for (var key in users) {
     users[key].group_dict = {};
-    for (var i = 0; i < users[key].group.length; i++) {
-      users[key].group_dict[users[key].group[i]] = true;
+    if (users[key].group) {
+      for (var i = 0; i < users[key].group.length; i++) {
+        users[key].group_dict[users[key].group[i]] = true;
+      }
     }
   }
 
@@ -157,7 +159,7 @@ firebase.database().ref('/user').once('value', function(snapshot) {
       group_dict[groups[k].name] = k;
       group_list.push([groups[k].name, k]);
     }
-    group_list.sort(function(a,b) {return a[0]>b[0];});
+    group_list.sort(function(a,b) { return a[0] < b[0]?-1:1;});
     for (var i in group_list) {
       $('#groups').append('<a href="#" class="collection-item" onclick="loadGroup(\'' + group_list[i][1] + '\')">' + group_list[i][0] + '</a>');
     }
@@ -180,6 +182,7 @@ var currentProblem;
 
 function loadUser(key) {
   var user = users[key];
+  currentUser = user;
   $('#problems a').each(function (i, e) {
     var problem = user.solved[$(e).attr('data-id')];
     if (problem !== undefined) {
@@ -206,9 +209,11 @@ function loadUser(key) {
 function loadProblem(key) {
   firebase.database().ref('/problems/' + key).once('value', function (snapshot) {
     currentProblem = snapshot;
-        init(JSON.stringify({
-          words: currentProblem.val().words.split(' '),
-          answers: currentProblem.val().answers}), true);
+    var answers = currentProblem.val().answers;
+    if (currentUser.solved[key]) answers = currentUser.solved[key].answers;
+    init(JSON.stringify({
+      words: currentProblem.val().words.split(' '),
+      answers: answers}), true);
   });
 }
 
