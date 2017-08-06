@@ -98,7 +98,8 @@
         <div class="collection" id="users"></div>
       </div>
       <div class="col s6">
-        <div class="collection" id="problems"></div>
+        <div class="collection" id="problem-list"></div>
+        <div id="problems"></div>
         <div id="content" tabindex="1"></div>
         <a class="waves-effect waves-light btn right" onclick="uploadAnswer()">Submit</a>
       </div>
@@ -183,10 +184,10 @@ var currentProblem;
 function loadUser(key) {
   var user = users[key];
   currentUser = user;
-  $('#problems a').each(function (i, e) {
+  $('#problem-list a').each(function (i, e) {
     var problem = user.solved[$(e).attr('data-id')];
     if (problem !== undefined) {
-      if (problem.correct) {
+      if (problem.pass) {
         $(e).addClass('active');
         $(e).removeClass('wrong');
       } else {
@@ -197,23 +198,34 @@ function loadUser(key) {
       $(e).removeClass('active');
       $(e).removeClass('wrong');
     }
-
-  });
-
-  firebase.database().ref('/problems/' + key).once('value', function (snapshot) {
-    currentProblem = snapshot;
-
   });
 }
 
 function loadProblem(key) {
   firebase.database().ref('/problems/' + key).once('value', function (snapshot) {
-    currentProblem = snapshot;
-    var answers = currentProblem.val().answers;
-    if (currentUser.solved[key]) answers = currentUser.solved[key].answers;
-    init(JSON.stringify({
-      words: currentProblem.val().words.split(' '),
-      answers: answers}), true);
+    currentProblem = snapshot.val();
+    var answers = currentProblem.answers;
+    if (currentUser.solved[key]) {
+      $('#problems').html('');
+      $('#content').hide();
+      var words = currentProblem.words.split(/\s+/);
+      var begin = currentUser.solved[key].begin;
+      var end = currentUser.solved[key].end;
+      answers = currentUser.solved[key].answers;
+      for (var i = 0; i < currentProblem.num_problems; i++) {
+        $('#problems').append('<div class="syntax-problem" id="problem-' + i + '" tabindex="' + (i+1) + '""></div>');
+        console.log(words.slice(begin[i], end[i]).join(' '));
+        init(JSON.stringify({
+          words: words.slice(begin[i], end[i]),
+          answers: answers[i]}), true, '#problem-' + i);
+      }
+    } else {
+      $('#content').show();
+      $('#problems').html('');
+      init(JSON.stringify({
+        words: currentProblem.words.split(/ +/),
+        answers: answers}), true);
+    }
   });
 }
 
@@ -225,49 +237,13 @@ function loadGroup(groupKey) {
     }
   }
   firebase.database().ref('/group/' + groupKey + '/problem').orderByChild('start').once('value', function (snapshot) {
-    $('#problems').html('');
+    $('#problem-list').html('');
     snapshot.forEach(function(problem) {
-      $('#problems').append('<a href="#" data-id="' + problem.key + '"class="collection-item" onclick="loadProblem(\'' + problem.key + '\')">' + problem.val().title + '<span class="secondary-content"><small>Due: ' + problem.val().end + '</small></span></a>');
+      $('#problem-list').append('<a href="#" data-id="' + problem.key + '"class="collection-item" onclick="loadProblem(\'' + problem.key + '\')">' + problem.val().title + '<span class="secondary-content"><small>Due: ' + problem.val().end + '</small></span></a>');
     });
   });
 }
 
-function uploadAnswer() {
-  if (!currentProblem || !currentUser) {
-    return;
-  }
-  var answers = [];
-
-  for (var i = 0; i < wordCount; i++) {
-    var real_id = '#word-' + i;
-    var left = $(real_id + ' .word-left').text();
-    var right = $(real_id + ' .word-right').text();
-    var bottom = $(real_id + ' .word-bottom').text();
-    if ($(real_id + ' .word-text').hasClass('noun')) bottom = 'n' + bottom;
-
-    answers.push([left, right, bottom]);
-  }
-  var correct = true;
-  var refAnswer = currentProblem.val().answers;
-  for (var i = 0; i < answers.length; i++) {
-    for(var j = 0; j < 3; j++) {
-      if (answers[i][j] !== refAnswer[i][j]) {
-        correct = false;
-        console.log(i, j, '/', answers[i][j], '/', refAnswer[i][j], '/');
-      }
-    }
-  }
-  firebase.database().ref('user/' + currentUser.uid + '/solved/' + currentProblem.key).set({
-    timestamp: firebase.database.ServerValue.TIMESTAMP,
-    answers: answers,
-    correct: correct
-  });
-  if(correct) {
-    Info("Correct");
-  } else {
-    Error("Incorrect. Try Again.");
-  }
-}
 </script>
     <script src="common.js"></script>
   </body>

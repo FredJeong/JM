@@ -52,6 +52,7 @@
         <li><kbd>Delete</kbd> delete rightmost parenthesis/bracket</li>
         <li><kbd>v</kbd> verb <kbd>n</kbd> noun <kbd>a</kbd> adjective <kbd>d</kbd> adverb</li>
         </ul>
+        <div id="problems"></div>
         <div id="content" tabindex="1"></div>
         <a class="waves-effect waves-light btn right" onclick="uploadAnswer()">Submit</a>
       </div>
@@ -122,6 +123,8 @@ firebase.database().ref('/problems').limitToLast(10).once('value', function (sna
 var currentUser;
 var currentProblem;
 
+var generatedProblem;
+
 function loadProblem(key) {
   firebase.database().ref('/problems/' + key).once('value', function (snapshot) {
     currentProblem = snapshot;
@@ -129,16 +132,65 @@ function loadProblem(key) {
     */
     firebase.database().ref('user/' + currentUser.uid + '/solved/' + currentProblem.key).once('value', function (problem) {
       if (!problem.val()) {
-        init(currentProblem.val().words);
+        reloadProblem(snapshot);
       } else {
-        init(JSON.stringify({
-          words: currentProblem.val().words.split(' '),
-          answers: problem.val().answers
-        }), true);
+        var problemCount = currentProblem.val().num_problems;
+        var words = currentProblem.val().words.split(/\s+/);
+        var begin = problem.val().begin;
+        var end = problem.val().end;
+        generatedProblem = {begin: begin, end: end};
+        $('#problems').html('');
+        for (var i = 0; i < problemCount; i++) {
+          $('#problems').append('<div class="syntax-problem" id="problem-' + i + '" tabindex="' + (i+1) + '""></div>');
+          init(JSON.stringify({
+            words: words.slice(begin[i], end[i]),
+            answers: problem.val().answers[i]
+          }), true, '#problem-' + i);
+        }
       }
     });
-
   });
+}
+
+function reloadProblem(snapshot) {
+  var problem = snapshot.val();
+  var problemCount = currentProblem.val().num_problems;
+  var words = currentProblem.val().words.split(/\s+/);
+  var begin = [0];
+  var end = [];
+  var sentenceCount = 0;
+  firebase.database().ref('user/' + currentUser.uid + '/solved/' + currentProblem.key)
+    .delete();
+
+  for (var i = 0; i < words.length; i++) {
+    if (words[i].substr(-1) === '.') {
+      begin.push(i+1);
+      end.push(i+1);
+      sentenceCount++;
+    }
+  }
+  var range = [];
+  var choice = [];
+  for (var i = 0; i < sentenceCount; i++) {
+    range.push(i);
+  }
+  for (var i = 0; i < problemCount; i++) {
+    choice.push(range.splice(Math.floor(Math.random()*range.length), 1)[0]);
+  }
+  begin = choice.map(function(x) {return begin[x]});
+  end = choice.map(function(x) {return end[x]});
+  generatedProblem = {begin: begin, end: end};
+
+  console.log(words);
+  console.log(begin);
+  console.log(end);
+
+  $('#problems').html('');
+  for (var i = 0; i < problemCount; i++) {
+    $('#problems').append('<div class="syntax-problem" id="problem-' + i + '" tabindex="' + (i+1) + '""></div>');
+    console.log(words.slice(begin[i], end[i]).join(' '));
+    init(words.slice(begin[i], end[i]).join(' '), false, '#problem-' + i);
+  }
 }
 
 function loadGroup(key) {
@@ -155,36 +207,51 @@ function uploadAnswer() {
     return;
   }
   var answers = [];
+  var num_correct = 0;
+  var problemCount = currentProblem.val().num_problems;
 
-  for (var i = 0; i < wordCount; i++) {
-    var real_id = '#word-' + i;
-    var left = $(real_id + ' .word-left').text();
-    var right = $(real_id + ' .word-right').text();
-    var bottom = $(real_id + ' .word-bottom').text();
-    if ($(real_id + ' .word-text').hasClass('noun')) bottom = 'n' + bottom;
+  for (var k = 0; k < problemCount; k++) {
+    var problem_id = '#problem-' + k;
+    answers.push([]);
+    var wordCount = generatedProblem.end[k] - generatedProblem.begin[k];
+    for (var i = 0; i < wordCount; i++) {
+      var real_id = problem_id + '-word-' + i;
+      var left = $(real_id + ' .word-left').text();
+      var right = $(real_id + ' .word-right').text();
+      var bottom = $(real_id + ' .word-bottom').text();
+      if ($(real_id + ' .word-text').hasClass('noun')) bottom = 'n' + bottom;
 
-    answers.push([left, right, bottom]);
-  }
-  var correct = true;
-  var refAnswer = currentProblem.val().answers;
-  for (var i = 0; i < answers.length; i++) {
-    for(var j = 0; j < 3; j++) {
-      if (answers[i][j] !== refAnswer[i][j]) {
-        correct = false;
-        console.log(i, j, '/', answers[i][j], '/', refAnswer[i][j], '/');
+      answers[k].push([left, right, bottom]);
+    }
+    var correct = true;
+    var refAnswer = currentProblem.val().answers.slice(generatedProblem.begin[k], generatedProblem.end[k]);
+    for (var i = 0; i < answers[k].length; i++) {
+      for(var j = 0; j < 3; j++) {
+        if (answers[k][i][j] !== refAnswer[i][j]) {
+          correct = false;
+          console.log(i, j, '/', answers[k][i][j], '/', refAnswer[i][j], '/');
+        }
       }
     }
+    if (correct) num_correct++;
+  }
+  var num_pass = currentProblem.val().num_pass;
+  var pass;
+  if(num_correct >= num_pass) {
+    Info(num_correct + "/" + problemCount + " Problems are correct");
+    pass = true;
+  } else {
+    Error(num_correct + "/" + problemCount + " Problems are correct. Try again.");
+    pass = false;
   }
   firebase.database().ref('user/' + currentUser.uid + '/solved/' + currentProblem.key).set({
     timestamp: firebase.database.ServerValue.TIMESTAMP,
     answers: answers,
-    correct: correct
+    correct: num_correct,
+    begin: generatedProblem.begin,
+    end: generatedProblem.end,
+    pass: pass
   });
-  if(correct) {
-    Info("Correct");
-  } else {
-    Error("Incorrect. Try Again.");
-  }
 }
 </script>
     <script src="common.js"></script>

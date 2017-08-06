@@ -1,11 +1,12 @@
 var text = "O say can you see, by the dawn's early light, what so proudly we hailed at the twilight's last gleaming,"
 var wordCount;
+var sentenceCount;
 var words;
 var selected_id;
 var wordHistory = [];
 
-function makeWordChunk(idx, word) {
-  return "<div id='word-" + idx  + "' class='word'>" +
+function makeWordChunk(idx, word, prefix) {
+  return "<div id='" + prefix + "word-" + idx  + "' class='word'>" +
           "<span class='word-left'></span><span class='word-bottom'></span>" +
           "<span class='word-text'>" + word + "</span>" +
           "<span class='word-right'></span></div>";
@@ -30,8 +31,16 @@ function generateAnswer() {
   var start = $('#start-date').val();
   var end = $('#end-date').val();
 
+  var num_problems = Number($('#num-problems').val()) || sentenceCount;
+  var num_pass = Number($('#num-pass').val()) || sentenceCount;
+
+  if (num_problems > sentenceCount || num_problems < num_pass) {
+    Error("Check number of problems / pass criteria");
+    return;
+  }
+
   for (var i = 0; i < wordCount; i++) {
-    var real_id = '#word-' + i;
+    var real_id = content_id + '-word-' + i;
     var left = $(real_id + ' .word-left').text();
     var right = $(real_id + ' .word-right').text();
     var bottom = $(real_id + ' .word-bottom').text();
@@ -48,7 +57,9 @@ function generateAnswer() {
     answers: answers,
     title: title,
     start: start,
-    end: end
+    end: end,
+    num_problems: num_problems,
+    num_pass: num_pass
   }
   var answerRef = firebase.database().ref('/problems').push();
   answerRef.set(answer);
@@ -65,37 +76,45 @@ function generateAnswer() {
   });
 }
 
-function init (text, preprocessed) {
-  $('#content').html('');
+function init (text, preprocessed, content_id) {
+  var lWordCount;
+  content_id = content_id || '#content';
+  $(content_id).html('');
   if (!preprocessed) {
     text = text.split(/\r?\n/).join(' \n ');
     words = text.split(/ +/);
-    wordCount = words.length;
+    lWordCount = wordCount = words.length;
   } else {
     text = JSON.parse(text);
     words = text.words;
-    wordCount = words.length;
+    lWordCount =  wordCount = words.length;
   }
+  sentenceCount = 0;
+  for (var i = 0; i < words.length; i++) {
+    if (words[i].substr(-1) === '.') sentenceCount++;
+  }
+  $('#sentence-count').text('Total ' + sentenceCount + ' sentence' + (sentenceCount === 1?'':'s'));
+
   var count = 0;
   for (var i = 0; i < words.length; i++) {
     if (words[i] === '') {
-      wordCount--;
+      lWordCount--;
       continue;
     }
     if (words[i] === '\n') {
-      wordCount--;
-      $('#content').append('<br>');
+      lWordCount--;
+      $(content_id).append('<br>');
       continue;
     }
-    $('#content').append(makeWordChunk(count, words[i]));
-    var w = Number($('#word-' + count).css('width').split('px')[0]);
-    var w2 = Number($('#word-' + count + ' .word-bottom').css('width').split('px')[0]);
-    $('#word-' + count + ' .word-bottom').css('left', (w / 2 - 15) + 'px');
+    $(content_id).append(makeWordChunk(count, words[i], content_id.substr(1) + '-'));
+    var w = Number($(content_id + '-word-' + count).css('width').split('px')[0]);
+    var w2 = Number($(content_id + '-word-' + count + ' .word-bottom').css('width').split('px')[0]);
+    $(content_id + '-word-' + count + ' .word-bottom').css('left', (w / 2 - 15) + 'px');
     count++;
   }
   if (preprocessed) {
-    for (var i = 0; i < wordCount; i++) {
-      var real_id = '#word-' + i;
+    for (var i = 0; i < lWordCount; i++) {
+      var real_id = content_id + '-word-' + i;
       var bottom = text.answers[i][2];
       if (bottom[0] === 'n') {
         $(real_id + ' .word-text').addClass('noun');
@@ -107,23 +126,23 @@ function init (text, preprocessed) {
       updateBottomAlign(real_id);
     }
   }
-  $('#content').off('keydown');
-  $('#content').keydown(function(e) {
+  $(content_id).off('keydown');
+  $(content_id).keydown(function(e) {
     if (selected_id === undefined) return;
     var id = selected_id;
-    var real_id = '#word-' + id;
+    var real_id = content_id + '-word-' + id;
     switch(e.which) {
     case 37: // left
       if (id <= 0) break;
-      $('#word-' + id).removeClass('selected');
-      $('#word-' + (id - 1)).addClass('selected');
+      $(content_id + '-word-' + id).removeClass('selected');
+      $(content_id + '-word-' + (id - 1)).addClass('selected');
       selected_id = id - 1;
       break;
 
     case 39: // right
-      if (id >=  wordCount - 1) break;
-      $('#word-' + id).removeClass('selected');
-      $('#word-' + (id + 1)).addClass('selected');
+      if (id >=  lWordCount - 1) break;
+      $(content_id + '-word-' + id).removeClass('selected');
+      $(content_id + '-word-' + (id + 1)).addClass('selected');
       selected_id = id + 1;
       break;
 
@@ -199,8 +218,11 @@ function init (text, preprocessed) {
     case 8: // backspace
       console.log('bs');
       var t = $(real_id + ' .word-left').text();
-      $(real_id + ' .word-left').text(t.substr(1));
-      break;
+      if (t.length > 0){
+        $(real_id + ' .word-left').text(t.substr(1));
+        break;
+      }
+      // fall through
     case 46: // delete
       console.log('del');
       var t = $(real_id + ' .word-right').text();
@@ -211,12 +233,12 @@ function init (text, preprocessed) {
     }
     e.preventDefault(); // prevent the default action (scroll / move caret)
   });
-  $('.word').click(function(e) {
-    $('#word-' + selected_id).removeClass('selected');
-    var id = Number($(this).attr('id').substr(5));
+  $(content_id + ' .word').click(function(e) {
+    $(content_id + '-word-' + selected_id).removeClass('selected');
+    var id = Number($(this).attr('id').split('-').slice(-1));
     selected_id = id;
     var real_id = $(this).attr('id');
-    $('#word-' + selected_id).addClass('selected');
-    $('#content').focus();
+    $(content_id + '-word-' + selected_id).addClass('selected');
+    $(content_id).focus();
   });
 }
