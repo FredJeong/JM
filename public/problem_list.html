@@ -130,29 +130,44 @@ function loadProblem(key) {
     currentProblem = snapshot;
     /*
     */
-    firebase.database().ref('user/' + currentUser.uid + '/solved/' + currentProblem.key).once('value', function (problem) {
-      if (!problem.val()) {
-        reloadProblem(snapshot);
-      } else {
-        var problemCount = currentProblem.val().num_problems;
-        var words = currentProblem.val().words.split(/\s+/);
-        var begin = problem.val().begin;
-        var end = problem.val().end;
-        generatedProblem = {begin: begin, end: end};
-        $('#problems').html('');
-        for (var i = 0; i < problemCount; i++) {
-          $('#problems').append('<div class="syntax-problem" id="problem-' + i + '" tabindex="' + (i+1) + '""></div>');
-          init(JSON.stringify({
-            words: words.slice(begin[i], end[i]),
-            answers: problem.val().answers[i]
-          }), true, '#problem-' + i);
+    var type = currentProblem.val().type;
+    if (type === 'syntax') {
+      firebase.database().ref('user/' + currentUser.uid + '/solved/' + currentProblem.key).once('value', function (problem) {
+        if (!problem.val()) {
+          reloadSyntaxProblem(snapshot);
+        } else {
+          var problemCount = currentProblem.val().num_problems;
+          var words = currentProblem.val().words.split(/\s+/);
+          var begin = problem.val().begin;
+          var end = problem.val().end;
+          generatedProblem = {begin: begin, end: end};
+          $('#problems').html('');
+          for (var i = 0; i < problemCount; i++) {
+            $('#problems').append('<div class="syntax-problem" id="problem-' + i + '" tabindex="' + (i+1) + '""></div>');
+            init(JSON.stringify({
+              words: words.slice(begin[i], end[i]),
+              answers: problem.val().answers[i]
+            }), true, '#problem-' + i);
+          }
         }
-      }
-    });
+      });
+    } else if (type === 'writing') {
+      firebase.database().ref('user/' + currentUser.uid + '/solved/' + currentProblem.key).once('value', function (problem) {
+        if (!problem.val()) {
+          
+        }
+      });
+    } else if (type === 'words') {
+      firebase.database().ref('user/' + currentUser.uid + '/solved/' + currentProblem.key).once('value', function (problem) {
+        if (!problem.val()) {
+          
+        }
+      });
+    }
   });
 }
 
-function reloadProblem(snapshot) {
+function reloadSyntaxProblem(snapshot) {
   var problem = snapshot.val();
   var problemCount = currentProblem.val().num_problems;
   var words = currentProblem.val().words.split(/\s+/);

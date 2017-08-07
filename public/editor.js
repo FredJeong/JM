@@ -59,10 +59,21 @@ function generateAnswer() {
     start: start,
     end: end,
     num_problems: num_problems,
-    num_pass: num_pass
+    num_pass: num_pass,
+    type: 'syntax'
   }
   var answerRef = firebase.database().ref('/problems').push();
-  answerRef.set(answer);
+  answerRef.set(answer).then(function success() {
+    $('#content').html('');
+    $('#title').val('');
+    $('#start-date').val('');
+    $('#end-date').val('');
+    $('#num-problems').val('');
+    $('#num-pass').val('');
+    Info('Problem registered')
+  }, function error() {
+    Error('There was an error while registering problem');
+  });
 
   var list = [];
   $("input:checked").each(function(i, e) {

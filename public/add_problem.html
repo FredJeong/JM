@@ -41,9 +41,9 @@
       </div>
       <div class="nav-content">
         <ul class="tabs tabs-transparent">
-          <li class="tab col s3"><a class="active" href="#syntax">Syntax</a></li>
-          <li class="tab col s3"><a href="#writing">Writing</a></li>
-          <li class="tab col s3"><a href="#words">Words</a></li>
+          <li class="tab col s3"><a id="tab-syntax" class="active" href="#syntax">Syntax</a></li>
+          <li class="tab col s3"><a id="tab-writing" href="#writing">Writing</a></li>
+          <li class="tab col s3"><a id="tab-words" href="#words">Words</a></li>
         </ul>
       </div>
     </nav>
@@ -69,6 +69,75 @@
         </form>
         <div class="col s12 row">
           <div id="content" class="col s12" tabindex="1"></div>
+        </div>
+      </div>
+      <div class="col s12" id="writing">
+        <form class="col s12">
+          <div class="row">
+            <div class="input-field col s12">
+              <textarea id="writing-text" class="materialize-textarea"></textarea>
+              <label for="writing-text">Questions - [english / sentence / question (줄바꿈) 한국어 뜻 (둘바꿈)]</label>
+            </div>
+          </div>
+          <a class="waves-effect waves-light btn" id="make-writing-set">Make Problem Set</a>
+        </form>
+        <table class="col s12 highlight" id="writing-table">
+          <thead>
+            <tr>
+              <td>Question</td>
+              <td>Answer</td>
+            </tr>
+          </thead>
+          <tbody>
+          </tbody>
+        </table>
+      </div>
+      <div class="col s12" id="words">
+        <form class="col s12">
+          <div class="row">
+            <div class="input-field col s12">
+              <textarea id="words-text" class="materialize-textarea"></textarea>
+              <label for="words-text">Questions - [word (줄바꿈) answer (둘바꿈)]</label>
+            </div>
+          </div>
+          <a class="waves-effect waves-light btn" id="make-words-set">Make Problem Set</a>
+        </form>
+        <table class="col s12 highlight" id="words-table">
+          <thead>
+            <tr>
+              <td>Question</td>
+              <td>Answer</td>
+            </tr>
+          </thead>
+          <tbody>
+          </tbody>
+        </table>
+        <div class="col s12 row">
+          <form action="#" class="col s6">
+            <p>
+              <input name="words-type" type="radio" id="words-open" checked/>
+              <label for="words-open">주관식</label>
+            </p>
+
+            <p>
+              <input name="words-type" type="radio" id="words-multiple" />
+              <label for="words-multiple">객관식</label>
+            </p>
+          </form>
+          <form class="col s6">
+            <div class="row">
+              <div class="input-field col s12">
+                <input placeholder="4" id="words-num-choices" type="number" class="validate">
+                <label for="words-num-choices">Number of choices</label>
+              </div>
+            </div>
+          </form>
+        </div>
+      </div>
+      <div class="col s12">
+        <h5>Groups</h5>
+        <div class="col s12" id="groups"></div>
+        <div class="col s12">
           <form class="col s12">
             <div class="row">
               <div class="input-field col s12">
@@ -94,17 +163,10 @@
                 <label for="num-pass"># Pass</label>
               </div>
             </div>
-
           </form>
-          <h5>Groups</h5>
-          <div class="col s12" id="groups"></div>
-          <div class="col s12">
-            <a class="btn waves-effect waves-light" onclick="generateAnswer()">Add Problem</a>
-          </div>
+          <a class="btn waves-effect waves-light" id="add-problem">Add Problem</a>
         </div>
       </div>
-      <div class="col s12" id="writing">Writing</div>
-      <div class="col s12" id="words">Words</div>
     </div>
     <div class="row">
       <p id="info">Firebase SDK Loading&hellip;</p>
@@ -170,6 +232,122 @@ $("#update-user").click(function() {
   });
   firebase.database().ref('user/' + uid).child('group').set(list.sort().map(function(x){return group_dict[x];}));
 });
+
+$('#add-problem').click(function() {
+  var active_tab = $('ul.tabs .active').attr('id');
+  if (active_tab === 'tab-syntax') {
+    generateAnswer();
+  } else if (active_tab === 'tab-writing') {
+    addWritingProblem();
+  } else if (active_tab === 'tab-words') {
+    addWordsProblem();
+  }
+});
+
+var writing_init = false;
+var problem = {
+  question: [],
+  answer: []
+};
+var problemSize = 0;
+
+$('#make-writing-set').click(newWritingProblem);
+$('#make-words-set').click(newWordsProblem);
+
+function newWritingProblem() {
+  writing_init = true;
+  problem = {
+    question: [],
+    answer: []
+  };
+  $('#writing-table tbody').html('');
+  var text = $('#writing-text').val().split(/\r?\n/);
+  for (var i = 0; i < text.length; i += 2) {
+    problem.question.push(text[i]);
+    problem.answer.push(text[i+1]);
+    $('#writing-table tbody').append('<tr><td>' + text[i] + '</td><td>' + text[i+1] + '</td></tr>');
+  }
+  problemSize = Math.floor(text.length/2);
+}
+
+function newWordsProblem() {
+  words_init = true;
+  problem = {
+    question: [],
+    answer: []
+  };
+  $('#words-table tbody').html('');
+  var text = $('#words-text').val().split(/\r?\n/);
+  for (var i = 0; i < text.length; i += 2) {
+    problem.question.push(text[i]);
+    problem.answer.push(text[i+1]);
+    $('#words-table tbody').append('<tr><td>' + text[i] + '</td><td>' + text[i+1] + '</td></tr>');
+  }
+  problemSize = Math.floor(text.length/2);
+}
+
+function addOtherProblem(type) {
+  if (type === 'writing') {
+    if (!writing_init) {
+      Error("Press [Make Problem Set] first!!");
+      return;
+    }
+  } else if (type === 'words') {
+    if (!words_init) {
+      Error("Press [Make Problem Set] first!!");
+      return;
+    }
+  } else {
+    Error('addProblem: unrecognized problem type ' + type);
+    return;
+  }
+
+  var title = $('#title').val();
+  var start = $('#start-date').val();
+  var end = $('#end-date').val();
+
+  var num_problems = Number($('#num-problems').val()) || problemSize;
+  var num_pass = Number($('#num-pass').val()) || problemSize;
+
+  var answer = {
+    question: problem.question,
+    answer: problem.answer,
+    title: title,
+    start: start,
+    end: end,
+    num_problems: num_problems,
+    num_pass: num_pass,
+    type: type
+  }
+  if (type === 'words') {
+    var type = $('input[name="words-type"]:checked').attr('id');
+
+    answer.problem_type = type.split('-').slice(-1);
+    answer.choice_count = Number($('#words-num-choices').val());
+  }
+  var answerRef = firebase.database().ref('/problems').push();
+  answerRef.set(answer).then(function success() {
+    $('#title').val('');
+    $('#start-date').val('');
+    $('#end-date').val('');
+    $('#num-problems').val('');
+    $('#num-pass').val('');
+    if (type === 'writing') {
+      $('#writing-text').val();
+      $('#writing-table tbody').html('');
+    } else if (type === 'words') {
+      $('#words-text').val();
+      $('#words-table tbody').html('');
+    }
+    Info('Problem registered')
+  }, function error() {
+    Error('There was an error while registering problem');
+  });
+}
+
+function addWordsProblem() {
+  console.log('Words');
+}
 
 firebase.auth().onAuthStateChanged(function(user) {
   if (user) {
