@@ -158,7 +158,8 @@ function init (text, preprocessed, content_id) {
       break;
 
     case 65:
-      console.log('a');
+    case 66:
+      console.log('a/b');
       if ($(real_id + ' .word-bottom').text() === 'a')
         $(real_id + ' .word-bottom').text('');
       else
@@ -166,7 +167,8 @@ function init (text, preprocessed, content_id) {
       updateBottomAlign(real_id);
       break;
     case 68:
-      console.log('d');
+    case 71:
+      console.log('d/g');
       if ($(real_id + ' .word-bottom').text() === 'ad')
         $(real_id + ' .word-bottom').text('');
       else

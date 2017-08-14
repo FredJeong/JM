@@ -55,7 +55,7 @@
           <li><kbd>[</kbd> <kbd>]</kbd> <kbd><</kbd> <kbd>></kbd> <kbd>(</kbd> <kbd>)</kbd> : Clauses</li>
           <li><kbd>Backspace</kbd> delete leftmost parenthesis/bracket</li>
           <li><kbd>Delete</kbd> delete rightmost parenthesis/bracket</li>
-          <li><kbd>v</kbd> verb <kbd>n</kbd> noun <kbd>a</kbd> adjective <kbd>d</kbd> adverb</li>
+          <li><kbd>v</kbd> verb <kbd>n</kbd> noun <kbd>a</kbd>, <kbd>b</kbd> adjective <kbd>d</kbd>, <kbd>g</kbd> adverb</li>
         </ul>
         <form class="col s12">
           <div class="row">
@@ -326,7 +326,7 @@ function addOtherProblem(type) {
     var type = $('input[name="words-type"]:checked').attr('id');
 
     answer.problem_type = type.split('-').slice(-1)[0];
-    answer.choice_count = Number($('#words-num-choices').val());
+    answer.choice_count = Number($('#words-num-choices').val()) || 4;
     if (answer.choice_count > problemSize) answer.choice_count = problemSize;
   }
   var answerRef = firebase.database().ref('/problems').push();
