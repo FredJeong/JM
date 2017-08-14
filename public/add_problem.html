@@ -97,7 +97,7 @@
           <div class="row">
             <div class="input-field col s12">
               <textarea id="words-text" class="materialize-textarea"></textarea>
-              <label for="words-text">Questions - [word (줄바꿈) answer (둘바꿈)]</label>
+              <label for="words-text">Questions - [word (줄바꿈) answer (줄바꿈)]</label>
             </div>
           </div>
           <a class="waves-effect waves-light btn" id="make-words-set">Make Problem Set</a>
@@ -238,9 +238,9 @@ $('#add-problem').click(function() {
   if (active_tab === 'tab-syntax') {
     generateAnswer();
   } else if (active_tab === 'tab-writing') {
-    addWritingProblem();
+    addOtherProblem('writing');
   } else if (active_tab === 'tab-words') {
-    addWordsProblem();
+    addOtherProblem('words');
   }
 });
 
@@ -263,8 +263,9 @@ function newWritingProblem() {
   $('#writing-table tbody').html('');
   var text = $('#writing-text').val().split(/\r?\n/);
   for (var i = 0; i < text.length; i += 2) {
-    problem.question.push(text[i]);
-    problem.answer.push(text[i+1]);
+    if (!text[i+1]) continue;
+    problem.answer.push(text[i]);
+    problem.question.push(text[i+1]);
     $('#writing-table tbody').append('<tr><td>' + text[i] + '</td><td>' + text[i+1] + '</td></tr>');
   }
   problemSize = Math.floor(text.length/2);
@@ -279,6 +280,7 @@ function newWordsProblem() {
   $('#words-table tbody').html('');
   var text = $('#words-text').val().split(/\r?\n/);
   for (var i = 0; i < text.length; i += 2) {
+    if (!text[i+1]) continue;
     problem.question.push(text[i]);
     problem.answer.push(text[i+1]);
     $('#words-table tbody').append('<tr><td>' + text[i] + '</td><td>' + text[i+1] + '</td></tr>');
@@ -308,7 +310,8 @@ function addOtherProblem(type) {
 
   var num_problems = Number($('#num-problems').val()) || problemSize;
   var num_pass = Number($('#num-pass').val()) || problemSize;
-
+  if (num_problems > problemSize) num_problems = problemSize;
+  if (num_pass > num_problems) num_pass = num_problems;
   var answer = {
     question: problem.question,
     answer: problem.answer,
@@ -339,7 +342,19 @@ function addOtherProblem(type) {
       $('#words-text').val();
       $('#words-table tbody').html('');
     }
-    Info('Problem registered')
+
+    $("#groups input:checked").each(function(i, e) {
+      var id = $(e).attr('id').substr(5);
+      firebase.database().ref('group/' + id + '/problem/' + answerRef.key).set({
+        title: title,
+        start: start,
+        end: end
+      });
+    }).then(function success() {
+      Info('Problem registered');
+    }, function error () {
+      Error('There was an error while registering problem to groups');
+    });
   }, function error() {
     Error('There was an error while registering problem');
   });

@@ -76,7 +76,7 @@ function generateAnswer() {
   });
 
   var list = [];
-  $("input:checked").each(function(i, e) {
+  $("#groups input:checked").each(function(i, e) {
     var id = $(e).attr('id').substr(5);
     firebase.database().ref('group/' + id + '/problem/' + answerRef.key).set({
       title: title,
