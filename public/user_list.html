@@ -204,29 +204,72 @@ function loadUser(key) {
 function loadProblem(key) {
   firebase.database().ref('/problems/' + key).once('value', function (snapshot) {
     currentProblem = snapshot.val();
-    var answers = currentProblem.answers;
-    if (currentUser.solved[key]) {
-      $('#problems').html('');
-      $('#content').hide();
-      var words = currentProblem.words.split(/\s+/);
-      var begin = currentUser.solved[key].begin;
-      var end = currentUser.solved[key].end;
-      answers = currentUser.solved[key].answers;
-      for (var i = 0; i < currentProblem.num_problems; i++) {
-        $('#problems').append('<div class="syntax-problem" id="problem-' + i + '" tabindex="' + (i+1) + '""></div>');
-        console.log(words.slice(begin[i], end[i]).join(' '));
-        init(JSON.stringify({
-          words: words.slice(begin[i], end[i]),
-          answers: answers[i]}), true, '#problem-' + i);
-      }
-    } else {
-      $('#content').show();
-      $('#problems').html('');
-      init(JSON.stringify({
-        words: currentProblem.words.split(/ +/),
-        answers: answers}), true);
+    if (currentProblem.type === 'syntax') {
+      loadSyntaxProblem(key);
+    } else if (currentProblem.type === 'writing') {
+      loadWritingProblem(key);
+    } else if (currentProblem.type === 'words') {
+      loadWordsProblem(key);
     }
+
   });
+}
+
+function loadSyntaxProblem(key) {
+  var answers = currentProblem.answers;
+  if (currentUser.solved[key]) {
+    $('#problems').html('<h4>User solved the problem.</h4>');
+    $('#problems').append('<h5>Status: ' +
+      (currentUser.solved[key].pass ? 'Passed' : 'Failed') + '</h5>');
+    $('#problems').append('<h5>' + currentUser.solved[key].correct + '/' +
+      currentProblem.num_problems + ' correct</h5>');
+    $('#content').hide();
+    var words = currentProblem.words.split(/\s+/);
+    var begin = currentUser.solved[key].begin;
+    var end = currentUser.solved[key].end;
+    answers = currentUser.solved[key].answers;
+    for (var i = 0; i < currentProblem.num_problems; i++) {
+      $('#problems').append('<div class="syntax-problem" id="problem-' + i + '" tabindex="' + (i+1) + '""></div>');
+      console.log(words.slice(begin[i], end[i]).join(' '));
+      init(JSON.stringify({
+        words: words.slice(begin[i], end[i]),
+        answers: answers[i]}), true, '#problem-' + i);
+    }
+  } else {
+    $('#content').show();
+    $('#problems').html('<h3>User did not solved the problem yet</h3>');
+    init(JSON.stringify({
+      words: currentProblem.words.split(/ +/),
+      answers: answers}), true);
+  }
+}
+
+function loadWritingProblem(key) {
+  $('#problems').html('');
+  $('#content').hide();
+  if (currentUser.solved[key]) {
+    $('#problems').html('<h4>User solved the problem.</h4>');
+    $('#problems').append('<h5>Status: ' +
+      (currentUser.solved[key].pass ? 'Passed' : 'Failed') + '</h5>');
+    $('#problems').append('<h5>' + currentUser.solved[key].correct + '/' +
+      currentProblem.num_problems + 'correct</h5>');
+  } else {
+    $('#problems').html('<h3>User did not solved the problem yet</h3>');
+  }
+}
+
+function loadWordsProblem(key) {
+  $('#problems').html('');
+  $('#content').hide();
+  if (currentUser.solved[key]) {
+    $('#problems').html('<h4>User solved the problem.</h4>');
+    $('#problems').append('<h5>Status: ' +
+      (currentUser.solved[key].pass ? 'Passed' : 'Failed') + '</h5>');
+    $('#problems').append('<h5>' + currentUser.solved[key].correct + '/' +
+      currentProblem.num_problems + 'correct</h5>');
+  } else {
+    $('#problems').html('<h3>User did not solved the problem yet</h3>');
+  }
 }
 
 function loadGroup(groupKey) {

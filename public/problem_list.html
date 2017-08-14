@@ -18,8 +18,10 @@
     <style media="screen">
       body { background: #ECEFF1; color: rgba(0,0,0,0.87); font-family: Roboto, Helvetica, Arial, sans-serif; margin: 0; padding: 0; }
       kbd {display: inline-block; padding: 3px 5px; font: 11px "SFMono-Regular", Consolas, "Liberation Mono", Menlo, Courier, monospace; line-height: normal; line-height: 14px; color: #444d56; vertical-align: middle; background-color: #fafbfc; border: solid 1px #d1d5da; border-bottom-color: rgb(209, 213, 218); border-bottom-color: #c6cbd1; border-radius: 3px; box-shadow: inset 0 -1px 0 #c6cbd1; }
-      .writing-blocks, .writing-answer {
+      .writing-answer {
         min-height: 15px;
+        margin-bottom: 10px;
+        border-bottom: 1px solid #888;
       }
     </style>
 
@@ -56,7 +58,6 @@
         <li><kbd>v</kbd> verb <kbd>n</kbd> noun <kbd>a</kbd> adjective <kbd>d</kbd> adverb</li>
         </ul>
         <div id="problems"></div>
-        <div id="content" tabindex="1"></div>
         <a class="waves-effect waves-light btn right" onclick="uploadAnswer()">Submit</a>
       </div>
     </div>
@@ -156,17 +157,19 @@ function loadProblem(key) {
       });
     } else if (type === 'writing') {
       firebase.database().ref('user/' + currentUser.uid + '/solved/' + currentProblem.key).once('value', function (problem) {
-        if (!problem.val()) {
+        if (problem.val() && problem.val().pass) {
+           $('#problems').html('<h3>Already Passed!</h3>');
+        } else {
           loadWritingProblem(currentProblem.val());
         }
-          loadWritingProblem(currentProblem.val());
       });
     } else if (type === 'words') {
       firebase.database().ref('user/' + currentUser.uid + '/solved/' + currentProblem.key).once('value', function (problem) {
-        if (!problem.val()) {
+        if (problem.val() && problem.val().pass) {
+           $('#problems').html('<h3>Already Passed!</h3>');
+        } else {
           loadWordsProblem(currentProblem.val());
         }
-          loadWordsProblem(currentProblem.val());
       });
     }
   });
@@ -220,7 +223,6 @@ function loadWritingProblem(problem) {
   var range = [];
   var choice = [];
 
-
   for (var i = 0; i < problem.answer.length; i++) {
     range.push(i);
   }
@@ -235,7 +237,7 @@ function loadWritingProblem(problem) {
     generatedProblem.answer.push([]);
     var chunks = problem.answer[problemId].split('/').map(s=>s.trim());
     $('#problems').append(
-      '<div class="writing-problem" id="problem-' + i + '">' +
+      '<div class="writing-problem" id="problem-' + problemId + '">' +
       '<span class="writing-question">' + problem.question[problemId] + '</span>' +
       '<div class="writing-answer"></div><div class="writing-blocks"></div>' +
       '</div>');
@@ -247,7 +249,7 @@ function loadWritingProblem(problem) {
 
     for (var j = 0; j < chunks.length; j++) {
       var chunkId = range.splice(Math.floor(Math.random()*range.length), 1)[0];
-      $('#problem-' + i + " .writing-blocks").append(
+      $('#problem-' + problemId + " .writing-blocks").append(
         '<div class="chip" id="chunk-' + problemId + '-' + chunkId + '">' +
         '<a href="#!"  onclick="addToAnswer(' + problemId + ',' + chunkId + ')">' +
         chunks[chunkId] + '</a></div>');
@@ -286,7 +288,62 @@ function removeFromAnswer(problemId, chunkId) {
 }
 
 function loadWordsProblem(problem) {
+  $('#problems').html('');
+  generatedProblem = {};
+  generatedProblem.answer = [];
+  var range = [];
+  var choice = [];
 
+  for (var i = 0; i < problem.answer.length; i++) {
+    range.push(i);
+  }
+  for (var i = 0; i < problem.num_problems; i++) {
+    choice.push(range.splice(Math.floor(Math.random()*range.length), 1)[0]);
+  }
+
+  generatedProblem.selected = choice;
+
+  for (var i = 0; i < choice.length; i++) {
+    var problemId = choice[i];
+    $('#problems').append(
+      '<div class="words-problem" id="problem-' + problemId + '">' +
+      '<span class="words-question">' + problem.question[problemId] + '</span>' +
+      '<div class="words-answer"></div>' +
+      '</div>');
+    if (problem.problem_type === 'open') {
+      $('#problem-' + problemId + ' .words-answer').append(
+            '<form class="col s12"><div class="row">' +
+            '<div class="input-field col s12">' +
+            '<input type="text" placeholder="answer">' +
+            '</div></div></form>');
+    } else if (problem.problem_type === 'multiple') {
+      $('#problem-' + problemId + ' .words-answer').append(
+        '<div class="row"><form action="#" class="col s12"></form></div>');
+      var option_choice = {};
+      option_choice[problemId] = problem.answer[problemId];
+      var key = -1;
+      for (var j = 0; j < problem.choice_count - 1; j++) {
+        do {
+          key = Math.floor(Math.random()*problem.num_problems);
+        } while (option_choice[key] !== undefined);
+        option_choice[key] = problem.answer[key];
+      }
+      option_list = [];
+      for (key in option_choice) {
+        option_list.push(option_choice[key]);
+      }
+      for (var j = 0; j < problem.choice_count; j++) {
+        var option = option_list.splice(
+          Math.floor(Math.random()*option_list.length), 1)[0].trim();
+        $('#problem-' + problemId + ' form').append(
+          '<input name="words-choice-' + problemId + '"' +
+          ' type="radio" id="words-choice-' + problemId + '-' + j + '"' +
+          ' value="' + option + '"/>' +
+          '<label for="words-choice-' + problemId + '-' + j + '">' +
+          option + '</label>');
+      }
+    }
+  }
 }
 
 function loadGroup(key) {
@@ -361,11 +418,9 @@ function uploadSyntaxProblem() {
 }
 
 function uploadWritingProblem() {
-  var answers = currentProblem.val().question;
+  var answers = currentProblem.val().answer;
   var num_correct = 0;
   var problemCount = currentProblem.val().num_problems;
-
-  console.dir(generatedProblem.answer);
 
   for (var i = 0; i < problemCount; i++) {
     var problemId = generatedProblem.selected[i];
@@ -402,9 +457,44 @@ function uploadWritingProblem() {
 }
 
 function uploadWordsProblem() {
-  var answers = [];
+  var answers = currentProblem.val().answer;
   var num_correct = 0;
   var problemCount = currentProblem.val().num_problems;
+
+  generatedProblem.answer = [];
+
+  for (var i = 0; i < problemCount; i++) {
+    var problemId = generatedProblem.selected[i];
+    var answer = answers[problemId].trim();
+
+    var user_answer;
+    if (currentProblem.val().problem_type === 'open') {
+      user_answer = $('#problem-' + problemId + ' input').val();
+    } else if (currentProblem.val().problem_type === 'multiple') {
+      user_answer = $('#problem-' + problemId + ' input:checked').val();
+    }
+    if (!user_answer) user_answer = "";
+    generatedProblem.answer.push(user_answer.trim());
+    if (answer === user_answer.trim()) {
+      num_correct++;
+    }
+  }
+  var num_pass = currentProblem.val().num_pass;
+  var pass;
+  if(num_correct >= num_pass) {
+    Info(num_correct + "/" + problemCount + " Problems are correct");
+    pass = true;
+  } else {
+    Error(num_correct + "/" + problemCount + " Problems are correct. Try again.");
+    pass = false;
+  }
+  firebase.database().ref('user/' + currentUser.uid + '/solved/' + currentProblem.key).set({
+      timestamp: firebase.database.ServerValue.TIMESTAMP,
+      correct: num_correct,
+      selected: generatedProblem.selected,
+      answers: generatedProblem.answer,
+      pass: pass
+  });
 }
 </script>
     <script src="common.js"></script>

@@ -325,8 +325,9 @@ function addOtherProblem(type) {
   if (type === 'words') {
     var type = $('input[name="words-type"]:checked').attr('id');
 
-    answer.problem_type = type.split('-').slice(-1);
+    answer.problem_type = type.split('-').slice(-1)[0];
     answer.choice_count = Number($('#words-num-choices').val());
+    if (answer.choice_count > problemSize) answer.choice_count = problemSize;
   }
   var answerRef = firebase.database().ref('/problems').push();
   answerRef.set(answer).then(function success() {
