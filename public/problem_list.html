@@ -183,7 +183,7 @@ function reloadSyntaxProblem(snapshot) {
   var end = [];
   var sentenceCount = 0;
   firebase.database().ref('user/' + currentUser.uid + '/solved/' + currentProblem.key)
-    .delete();
+    .remove();
 
   for (var i = 0; i < words.length; i++) {
     if (words[i].substr(-1) === '.') {

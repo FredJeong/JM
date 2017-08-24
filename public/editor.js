@@ -3,6 +3,7 @@ var wordCount;
 var sentenceCount;
 var words;
 var selected_id;
+var original_content_id;
 var wordHistory = [];
 
 function makeWordChunk(idx, word, prefix) {
@@ -40,7 +41,7 @@ function generateAnswer() {
   }
 
   for (var i = 0; i < wordCount; i++) {
-    var real_id = content_id + '-word-' + i;
+    var real_id = original_content_id + '-word-' + i;
     var left = $(real_id + ' .word-left').text();
     var right = $(real_id + ' .word-right').text();
     var bottom = $(real_id + ' .word-bottom').text();
@@ -90,6 +91,7 @@ function generateAnswer() {
 function init (text, preprocessed, content_id) {
   var lWordCount;
   content_id = content_id || '#content';
+  original_content_id = content_id;
   $(content_id).html('');
   if (!preprocessed) {
     text = text.split(/\r?\n/).join(' \n ');
@@ -167,8 +169,8 @@ function init (text, preprocessed, content_id) {
       updateBottomAlign(real_id);
       break;
     case 68:
-    case 71:
-      console.log('d/g');
+    case 72:
+      console.log('d/h');
       if ($(real_id + ' .word-bottom').text() === 'ad')
         $(real_id + ' .word-bottom').text('');
       else
@@ -247,7 +249,7 @@ function init (text, preprocessed, content_id) {
     e.preventDefault(); // prevent the default action (scroll / move caret)
   });
   $(content_id + ' .word').click(function(e) {
-    $(content_id + '-word-' + selected_id).removeClass('selected');
+    $('.syntax-problem .selected').removeClass('selected');
     var id = Number($(this).attr('id').split('-').slice(-1));
     selected_id = id;
     var real_id = $(this).attr('id');
