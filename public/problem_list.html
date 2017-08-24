@@ -234,8 +234,8 @@ function loadWritingProblem(problem) {
 
   for (var i = 0; i < choice.length; i++) {
     var problemId = choice[i];
-    generatedProblem.answer.push([]);
-    var chunks = problem.answer[problemId].split('/').map(s=>s.trim());
+    generatedProblem.answer[problemId] = [];
+    var chunks = problem.chunks[problemId];
     $('#problems').append(
       '<div class="writing-problem" id="problem-' + problemId + '">' +
       '<span class="writing-question">' + problem.question[problemId] + '</span>' +
@@ -424,16 +424,10 @@ function uploadWritingProblem() {
 
   for (var i = 0; i < problemCount; i++) {
     var problemId = generatedProblem.selected[i];
-    var question = answers[problemId];
-    var answer_chunk = question.split('/').map(s=>s.trim());
-    var correct = true;
-    for (var j = 0; j < answer_chunk.length; j++) {
-      if (!generatedProblem.answer[problemId][j] ||
-        answer_chunk[j] !== generatedProblem.answer[problemId][j][1]) {
-          correct = false;
-          break;
-      }
-    }
+    var answer = answers[problemId].replace(/\s+/g, '').toLowerCase();
+    var user_answer = generatedProblem.answer[problemId].map(function(x) {return x[1];}).join('').replace(/\s+/g, '').toLowerCase();
+
+    var correct = user_answer === answer;
     if (correct) {
       num_correct++;
     }

@@ -258,17 +258,57 @@ function newWritingProblem() {
   writing_init = true;
   problem = {
     question: [],
-    answer: []
+    answer: [],
+    chunks: []
   };
   $('#writing-table tbody').html('');
   var text = $('#writing-text').val().split(/\r?\n/);
-  for (var i = 0; i < text.length; i += 2) {
-    if (!text[i+1]) continue;
-    problem.answer.push(text[i]);
-    problem.question.push(text[i+1]);
-    $('#writing-table tbody').append('<tr><td>' + text[i] + '</td><td>' + text[i+1] + '</td></tr>');
+  var w_problems = [];
+  var set = [];
+  for (var i = 0; i < text.length; i ++) {
+    if (!text[i]) continue;
+    set.push(text[i].trim());
+    if (set.length == 3) {
+      w_problems.push(set);
+      set = [];
+    }
   }
-  problemSize = Math.floor(text.length/2);
+  for (var i = 0; i < w_problems.length; i++) {
+    set = w_problems[i];
+    set[0] = set[0].split('.').slice(1).join('.').trim();
+    set[1] = set[1].replace(/\./g, ' ').trim();
+    if (set[1][0] === '(') set[1] = set[1].substr(1);
+    if (set[1][set[1].length-1] === ')') set[1] = set[1].substr(0, set[1].length - 1);
+    set[1] = set[1].replace(/[()]/g, ' / ').trim().split('/').map(function(s) {return s.trim();});
+    set[2] = set[2].replace(/\./g, ' ').replace(/\s+/g, ' ').trim();
+    console.log(set[2], set[1].slice());
+    if (test_match(set[2], set[1].slice())) {
+      $('#writing-table tbody').append('<tr><td>' + set[0] + '</td><td>' + set[2] + '</td></tr>');
+      problem.question.push(set[0]);
+      problem.chunks.push(set[1]);
+      problem.answer.push(set[2]);
+    } else {
+      $('#writing-table tbody').append('<tr><td>' + set[0] + '</td><td><span style="color: red">Error:</span> ' + set[1].join(' / ') + '<br>' + set[2] + '</td></tr>');
+    }
+  }
+  problemSize = Math.floor(w_problems.length);
+}
+
+function test_match(answer, chunks) {
+  if (answer.length === 0 && chunks.length === 0) return true;
+  for (var i = 0; i < chunks.length; i++) {
+    if (chunks[i] === '.') continue;
+    if (chunks[i].length > answer.length) return false;
+    if (chunks[i].toLowerCase() === answer.substr(0, chunks[i].length).toLowerCase()) {
+      console.log(chunks);
+      console.log(chunks[i], '/', answer);
+
+      var new_arr = chunks.slice();
+      new_arr.splice(i, 1);
+      if (test_match(answer.substr(chunks[i].length).trim(), new_arr)) return true;
+    }
+  }
+  return false;
 }
 
 function newWordsProblem() {
@@ -280,13 +320,13 @@ function newWordsProblem() {
   $('#words-table tbody').html('');
   var text = $('#words-text').val().split(/\r?\n/);
   for (var i = 0; i < text.length; i ++) {
-
-    if (!text[i+1]) continue;
-    problem.question.push(text[i]);
-    problem.answer.push(text[i+1]);
-    $('#words-table tbody').append('<tr><td>' + text[i] + '</td><td>' + text[i+1] + '</td></tr>');
+    if (!text[i]) continue;
+    var set = CSVtoArray(text[i]);
+    problem.question.push(set[1]);
+    problem.answer.push(set[0]);
+    $('#words-table tbody').append('<tr><td>' + set[1] + '</td><td>' + set[0] + '</td></tr>');
   }
-  problemSize = Math.floor(text.length/2);
+  problemSize = Math.floor(problem.question.length);
 }
 
 function CSVtoArray(text) {
@@ -344,6 +384,7 @@ function addOtherProblem(type) {
     num_pass: num_pass,
     type: type
   }
+  if (problem.chunks) answer.chunks = problem.chunks;
   if (type === 'words') {
     var type = $('input[name="words-type"]:checked').attr('id');
 
