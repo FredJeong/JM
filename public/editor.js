@@ -26,6 +26,37 @@ function newArticle() {
 function newArticleAnswer() {
   init($('#text').val(), true);
 }
+
+function fixTypo() {
+  var text = $('#text').val();
+  text = text.split(/\r?\n/).join(' \n ');
+  var new_words = text.split(/ +/);
+  if (new_words.length !== words.length) {
+    Error("Word count does not match. this can't be fixed.");
+    return;
+  }
+  words = new_words;
+
+  var answers = [];
+  for (var i = 0; i < wordCount; i++) {
+    var real_id = original_content_id + '-word-' + i;
+    var left = $(real_id + ' .word-left').text();
+    var right = $(real_id + ' .word-right').text();
+    var bottom = $(real_id + ' .word-bottom').text();
+    if ($(real_id + ' .word-text').hasClass('noun')) bottom = 'n' + bottom;
+
+    answers.push([left, right, bottom]);
+  }
+  $('#answer').text(JSON.stringify({
+    words: words,
+    answers: answers
+  }));
+  init(JSON.stringify({
+    words: words,
+    answers: answers
+  }), true);
+}
+
 function generateAnswer() {
   var answers = [];
   var title = $('#title').val();
