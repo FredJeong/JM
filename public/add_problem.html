@@ -323,8 +323,8 @@ function newWordsProblem() {
   for (var i = 0; i < text.length; i ++) {
     if (!text[i]) continue;
     var set = CSVtoArray(text[i]);
-    problem.question.push(set[1]);
-    problem.answer.push(set[0]);
+    problem.question.push(set[0]);
+    problem.answer.push(set[1]);
     $('#words-table tbody').append('<tr><td>' + set[1] + '</td><td>' + set[0] + '</td></tr>');
   }
   problemSize = Math.floor(problem.question.length);
