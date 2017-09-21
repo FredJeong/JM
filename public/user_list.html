@@ -102,6 +102,8 @@
         <div id="problems"></div>
         <div id="content" tabindex="1"></div>
         <a class="waves-effect waves-light btn right" onclick="uploadAnswer()">Submit</a>
+        <button class="btn red waves-effect waves-light" id="remove-problem" type="button" name="remove-problem">REMOVE
+        </button>
       </div>
     </div>
     <div class="row">
@@ -117,6 +119,11 @@
 var users;
 var userSnapshot;
 var groups, group_list, group_dict = {};
+
+var currentUser;
+var currentProblem;
+var currentProblemSnapshot;
+var currentGroupKey;
 
 document.addEventListener('DOMContentLoaded', function() {
 // // 🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥
@@ -139,6 +146,17 @@ try {
   console.error(e);
   document.getElementById('info').innerHTML = 'Error loading the Firebase SDK, check the console.';
 }
+
+$('#remove-problem').click(function() {
+  console.dir(currentProblem);
+  if (!currentProblem) return;
+  if (!window.confirm('Delete problem? ' + currentProblem.title)) {
+    return;
+  }
+  var ref = firebase.database().ref('group/' + currentGroupKey + '/problem/' + currentProblemSnapshot.key);
+  ref.remove();
+  loadGroup(currentGroupKey);
+});
 
 firebase.database().ref('/user').once('value', function(snapshot) {
   userSnapshot = snapshot;
@@ -178,13 +196,11 @@ firebase.database().ref('/problems').limitToLast(10).once('value', function (sna
 });
 });
 
-var currentUser;
-var currentProblem;
-
 function loadUser(key) {
   var user = users[key];
   currentUser = user;
   $('#problem-list a').each(function (i, e) {
+    if (user.solved === undefined) user.solved = [];
     var problem = user.solved[$(e).attr('data-id')];
     if (problem !== undefined) {
       if (problem.pass) {
@@ -204,6 +220,11 @@ function loadUser(key) {
 function loadProblem(key) {
   firebase.database().ref('/problems/' + key).once('value', function (snapshot) {
     currentProblem = snapshot.val();
+    currentProblemSnapshot = snapshot;
+    if (currentUser === undefined) {
+      $('#problems').html(currentProblem.title);
+      return;
+    }
     if (currentProblem.type === 'syntax') {
       loadSyntaxProblem(key);
     } else if (currentProblem.type === 'writing') {
@@ -274,6 +295,9 @@ function loadWordsProblem(key) {
 
 function loadGroup(groupKey) {
  $('#users').html('');
+  currentUser = undefined;
+  currentProblem = undefined;
+  currentGroupKey = groupKey;
   for (var key in users) {
     if (users[key].group_dict[groupKey]) {
       $('#users').append('<a href="#" class="collection-item" onclick="loadUser(\'' + key + '\')">' + users[key].name + '</a>');

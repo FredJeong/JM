@@ -53,6 +53,8 @@
         <button class="btn waves-effect waves-light" id="update-user" type="button" name="update-user">Update
           <i class="material-icons right">send</i>
         </button>
+        <button class="btn red waves-effect waves-light" id="remove-user" type="button" name="remove-user">REMOVE
+        </button>
       </div>
     </div>
     <div class="row">
@@ -134,6 +136,16 @@ $("#update-user").click(function() {
   firebase.database().ref('user/' + uid).child('group').set(list.sort().map(function(x){return group_dict[x];}));
   firebase.database().ref('user/' + uid).child('admin').set(isAdmin);
 });
+
+$('#remove-user').click(function() {
+  if (!uid) return;
+  if(!window.confirm('Do you really want to delete?')) {
+    return;
+  }
+  var ref = firebase.database().ref('user/' + uid);
+  ref.remove();
+  location.reload();
+})
 });
 
 function showUser(key) {

@@ -135,6 +135,7 @@ function loadProblem(key) {
     /*
     */
     var type = currentProblem.val().type;
+
     if (type === 'syntax') {
       firebase.database().ref('user/' + currentUser.uid + '/solved/' + currentProblem.key).once('value', function (problem) {
         if (!problem.val() || !problem.val().pass) {
