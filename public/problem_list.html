@@ -137,7 +137,7 @@ function loadProblem(key) {
     var type = currentProblem.val().type;
     if (type === 'syntax') {
       firebase.database().ref('user/' + currentUser.uid + '/solved/' + currentProblem.key).once('value', function (problem) {
-        if (!problem.val()) {
+        if (!problem.val() || !problem.val().pass) {
           reloadSyntaxProblem(snapshot);
         } else {
           var problemCount = currentProblem.val().num_problems;
@@ -350,7 +350,7 @@ function loadGroup(key) {
   firebase.database().ref('/group/' + key + '/problem').orderByChild('start').once('value', function (snapshot) {
     $('#prob-list').html('');
     snapshot.forEach(function(problem) {
-      $('#prob-list').append('<a href="#" class="collection-item" onclick="loadProblem(\'' + problem.key + '\')">' + problem.val().title + '<span class="secondary-content"><small>Due: ' + problem.val().end + '</small></span></a>');
+      $('#prob-list').append('<a href="#" id="p-' + problem.key + '" class="collection-item" onclick="loadProblem(\'' + problem.key + '\')">' + problem.val().title + '<span class="secondary-content"><small>Due: ' + problem.val().end + '</small></span></a>');
     });
   });
 }
@@ -359,13 +359,15 @@ function uploadAnswer() {
   if (!currentProblem || !currentUser) {
     return;
   }
+  var pass;
   if (currentProblem.val().type === 'syntax') {
-    uploadSyntaxProblem();
+    pass = uploadSyntaxProblem();
   } else if (currentProblem.val().type === 'writing') {
-    uploadWritingProblem();
+    pass = uploadWritingProblem();
   } else if (currentProblem.val().type === 'words') {
-    uploadWordsProblem();
+    pass = uploadWordsProblem();
   }
+  if (!pass) loadProblem(currentProblem.key);
 }
 
 function uploadSyntaxProblem() {
@@ -415,6 +417,7 @@ function uploadSyntaxProblem() {
     end: generatedProblem.end,
     pass: pass
   });
+  return pass;
 }
 
 function uploadWritingProblem() {
@@ -448,6 +451,7 @@ function uploadWritingProblem() {
       answers: generatedProblem.answer,
       pass: pass
   });
+  return pass;
 }
 
 function uploadWordsProblem() {
@@ -489,6 +493,7 @@ function uploadWordsProblem() {
       answers: generatedProblem.answer,
       pass: pass
   });
+  return pass;
 }
 </script>
     <script src="common.js"></script>
